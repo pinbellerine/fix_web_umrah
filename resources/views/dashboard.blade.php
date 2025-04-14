@@ -17,8 +17,6 @@
     </head>
     <section class="container mx-auto px-4">
 
-        <x-navbarwlcm>  </x-navbarwlcm>
-
         <x-navbar></x-navbar>
 
         <x-newtrcs :dataTransaksi="$dataTransaksi" />

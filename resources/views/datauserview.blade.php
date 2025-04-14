@@ -168,7 +168,7 @@
                                 <th scope="col" class="px-6 py-3">Tanggal daftar</th>
                                 <th scope="col" class="px-6 py-3">Perkiraan keberangkatan</th>
                                 <th scope="col" class="px-6 py-3">Perkiraan kepulangan</th>
-                                <th scope="col" class="px-6 py-3">Aksi</th>
+                                {{-- <th scope="col" class="px-6 py-3">Aksi</th> --}}
                             </tr>
                         </thead>
 
@@ -198,11 +198,11 @@
                                         {{ date('d-m-Y', strtotime($journey['return_date'])) }}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                {{-- <td class="px-6 py-4 text-center">
                                     <a href="{{ route('viewusertrip', ['journey_id' => $journey['id'], 'journey_type' => $journey['type']]) }}" class="flex justify-center items-center gap-2 bg-blue-200 text-blue-500 py-2 px-4 rounded-md w-fit mx-auto">
                                         Lihat data
                                     </a>
-                                </td>
+                                </td> --}}
                             </tr>
                             @endforeach
                         </tbody>
