@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bungkus utama yang membuat gambar bisa keluar layar */
+.wrapper {
+    width: 100vw;
+    height: 660px; /* Sesuaikan tinggi */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-10%);
+    overflow: hidden;
+}
+
+/* Gaya gambar komentar */
+.komentar {
+    width: 1600px; /* Sesuaikan ukuran */
+    height: auto; /* Agar tetap proporsional */
+    max-width: none; /* Jangan biarkan width dibatasi */
+    position: absolute;
+    left: 0; /* Memulai dari kiri */
+}
+
+/* Bungkus utama yang membuat gambar bisa keluar layar */
+.wrapper2 {
+    width: 100vw;
+    height: 60px; /* Sesuaikan tinggi */
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    overflow: hidden;
+}
+
+/* Gaya gambar komentar */
+.komentar2 {
+    width: 1600px; /* Sesuaikan ukuran */
+    height: auto; /* Agar tetap proporsional */
+    max-width: none; /* Jangan biarkan width dibatasi */
+    position: absolute;
+    left: 0; /* Memulai dari kiri */
+}
+
+.otp-input {
+    width: 45px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.5rem;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.otp-input:focus {
+    border-color: #3285D8;
+}
