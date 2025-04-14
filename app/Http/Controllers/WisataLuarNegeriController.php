@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\WisataLuarNegeri;
 use App\Models\AdminLogin;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class WisataLuarNegeriController extends Controller
 {
@@ -63,63 +64,65 @@ class WisataLuarNegeriController extends Controller
             'email' => 'required|email|max:255',
         ]);
 
-
-        // Upload foto
-        if ($request->hasFile('foto_peserta')) {
+        try {
+            // Upload foto
             $fotoPath = $request->file('foto_peserta')->store('uploads', 'public');
-        }
-
-        if ($request->hasFile('foto_ktp')) {
             $fotoKtpPath = $request->file('foto_ktp')->store('uploads', 'public');
-        }
-
-        if ($request->hasFile('foto_catatan')) {
             $fotoCatatanPath = $request->file('foto_catatan')->store('uploads', 'public');
+
+            // Hash the password once
+            $hashedPassword = bcrypt($request->password);
+
+            // Create wisata luar negeri record
+            $wisata = WisataLuarNegeri::create([
+                'nama_peserta' => $request->nama_peserta,
+                'nik' => $request->nik,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'foto_peserta' => $fotoPath,
+                'foto_ktp' => $fotoKtpPath,
+
+                'no_paspor' => $request->no_paspor,
+                'issuing_office' => $request->issuing_office,
+                'date_of_issued' => $request->date_of_issued,
+                'date_of_expiry' => $request->date_of_expiry,
+                'jenis_hubungan' => $request->jenis_hubungan ?? 'Keluarga',
+
+                'jenis_perjalanan' => $request->jenis_perjalanan,
+                'biaya' => $request->biaya,
+                'hotel' => $request->hotel,
+                'date_of_issued_perjalanan' => $request->date_of_issued_perjalanan,
+                'date_of_expiry_perjalanan' => $request->date_of_expiry_perjalanan,
+                'transportasi' => $request->transportasi,
+                'kode_khusus_perjalanan' => $request->kode_khusus_perjalanan,
+
+                'catatan' => $request->catatan,
+                'foto_catatan' => $fotoCatatanPath,
+
+                'username' => $request->username,
+                'password' => $hashedPassword,
+                'no_telepon' => $request->no_telepon,
+                'email' => $request->email,
+            ]);
+
+            // Create or update record in admin_login table for this user
+            AdminLogin::updateOrCreate(
+                ['username' => $request->username],
+                [
+                    'password' => $hashedPassword,
+                    'role' => 'user'
+                ]
+            );
+
+            Log::info('Wisata Luar Negeri created successfully', ['id' => $wisata->id]);
+            return redirect()->back()->with('success', 'Data berhasil disimpan.');
+        } 
+        catch (\Exception $e) {
+            Log::error('Error adding Wisata Luar Negeri: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
         }
-
-        WisataLuarNegeri::create([
-            'nama_peserta' => $request->nama_peserta,
-            'nik' => $request->nik,
-            'tempat_lahir' => $request->tempat_lahir,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'foto_peserta' => $fotoPath,
-            'foto_ktp' => $fotoKtpPath,
-
-            'no_paspor' => $request->no_paspor,
-            'issuing_office' => $request->issuing_office,
-            'date_of_issued' => $request->date_of_issued,
-            'date_of_expiry' => $request->date_of_expiry,
-
-            'jenis_perjalanan' => $request->jenis_perjalanan,
-            'biaya' => $request->biaya,
-            'hotel' => $request->hotel,
-            'date_of_issued_perjalanan' => $request->date_of_issued_perjalanan,
-            'date_of_expiry_perjalanan' => $request->date_of_expiry_perjalanan,
-            'transportasi' => $request->transportasi,
-            'kode_khusus_perjalanan' => $request->kode_khusus_perjalanan,
-
-            'catatan' => $request->catatan,
-            'foto_catatan' => $fotoCatatanPath,
-
-            'username' => $request->username,
-            'password' => bcrypt($request->password), // jangan lupa encrypt
-            'no_telepon' => $request->no_telepon,
-            'email' => $request->email,
-        ]);
-
-        // Create or update record in admin_login table
-        AdminLogin::updateOrCreate(
-            ['username' => $request->username],
-            [
-                'password' => bcrypt($request->password),
-                'role' => 'user'
-            ]
-        );
-
-        return redirect()->back()->with('success', 'Data berhasil disimpan.');
     }
-
 
     public function edit($id)
     {

@@ -12,11 +12,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Create admin users first
             AdminLoginSeeder::class,
+            
+            // Then create travelers
             JamaahHajiSeeder::class,
             JamaahUmrahSeeder::class,
             WisataDomestikSeeder::class,
             WisataLuarNegeriSeeder::class,
+            
+            // Finally create transactions
             TransaksiSeeder::class,
         ]);
     }

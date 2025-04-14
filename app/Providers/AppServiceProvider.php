@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Remove the problematic middleware code from here
+        // The middleware is now properly registered in Kernel.php
     }
 }

@@ -13,14 +13,22 @@ class AdminLoginSeeder extends Seeder
      */
     public function run(): void
     {
+        // Temporarily disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        
         // Clear existing records to prevent duplicates
         DB::table('admin_login')->truncate();
+        
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
         
         // Admin user
         DB::table('admin_login')->insert([
             'username' => 'admin',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'user_type' => 'admin',
+            'user_id' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -30,6 +38,8 @@ class AdminLoginSeeder extends Seeder
             'username' => 'user',
             'password' => Hash::make('password'),
             'role' => 'user',
+            'user_type' => 'admin',
+            'user_id' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -39,6 +49,8 @@ class AdminLoginSeeder extends Seeder
             'username' => 'supervisor',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'user_type' => 'admin',
+            'user_id' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

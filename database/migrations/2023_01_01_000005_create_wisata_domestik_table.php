@@ -30,10 +30,12 @@ return new class extends Migration
             $table->string('kode_khusus_perjalanan');
             $table->text('catatan');
             $table->string('foto_catatan');
-            $table->string('username');
+            $table->string('username')->unique();
             $table->string('password');
             $table->string('no_telepon', 20);
             $table->string('email');
+            $table->unsignedBigInteger('admin_login_id')->nullable();
+            $table->foreign('admin_login_id')->references('id')->on('admin_login')->onDelete('set null');
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\WisataLuarNegeri;
+use App\Models\AdminLogin;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
@@ -21,8 +22,11 @@ class WisataLuarNegeriSeeder extends Seeder
             $gender = $faker->randomElement(['L', 'P']);
             $firstName = $gender === 'L' ? $faker->firstNameMale() : $faker->firstNameFemale();
             $dest = $faker->randomElement($destinasi);
+            $username = $faker->userName();
+            $password = Hash::make('password');
             
-            WisataLuarNegeri::create([
+            // Create wisata luar negeri record
+            $wisataLuarNegeri = WisataLuarNegeri::create([
                 'nama_peserta' => $firstName . ' ' . $faker->lastName(),
                 'nik' => $faker->numerify('################'),
                 'tempat_lahir' => $faker->city(),
@@ -44,11 +48,24 @@ class WisataLuarNegeriSeeder extends Seeder
                 'kode_khusus_perjalanan' => $faker->bothify('INT-####??'),
                 'catatan' => $faker->paragraph(),
                 'foto_catatan' => 'catatan_default.jpg',
-                'username' => $faker->userName(),
+                'username' => $username,
                 'email' => $faker->unique()->safeEmail(),
-                'password' => Hash::make('password'),
+                'password' => $password,
                 'no_telepon' => $faker->numerify('08##########'),
             ]);
+
+            // Create admin login record for this traveler
+            $adminLogin = AdminLogin::create([
+                'username' => $username,
+                'password' => $password,
+                'role' => 'user',
+                'user_type' => 'wisata_luar_negeri',
+                'user_id' => $wisataLuarNegeri->id
+            ]);
+
+            // Update wisata luar negeri record with admin_login_id
+            $wisataLuarNegeri->admin_login_id = $adminLogin->id;
+            $wisataLuarNegeri->save();
         }
     }
 }

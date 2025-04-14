@@ -31,87 +31,54 @@ class WisataDomestikController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_peserta' => 'required|string|max:255',
-            'nik' => 'required|string|max:20|unique:wisata_domestik,nik',
-            'tempat_lahir' => 'required|string|max:100',
+        // Validate the request data
+        $validated = $request->validate([
+            'nama_peserta' => 'required',
+            'nik' => 'required|unique:wisata_domestik',
+            'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:L,P',
-            'foto_peserta' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            // 'jenis_hubungan' => 'required|in:Keluarga,Suami-istri',
-
-            'jenis_perjalanan' => 'required|string',
-            'biaya' => 'required|string',
-            'hotel' => 'required|string',
+            'foto_peserta' => 'required|image',
+            'foto_ktp' => 'required|image',
+            'jenis_perjalanan' => 'required',
+            'biaya' => 'required',
+            'hotel' => 'required',
             'date_of_issued_perjalanan' => 'required|date',
             'date_of_expiry_perjalanan' => 'required|date',
-            'transportasi' => 'required|string',
-            'kode_khusus_perjalanan' => 'required|string',
-
-            'catatan' => 'required|string',
-            'foto_catatan' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-
-            'username' => 'required|string|max:255',
-            'password' => 'required|string',
-            'no_telepon' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-
-            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-
+            'transportasi' => 'required',
+            'kode_khusus_perjalanan' => 'required',
+            'catatan' => 'required',
+            'foto_catatan' => 'required|image',
+            'username' => 'required|unique:wisata_domestik',
+            'password' => 'required',
+            'no_telepon' => 'required',
+            'email' => 'required|email|unique:wisata_domestik',
         ]);
-
-        // Upload foto
+        
+        // Process file uploads
         if ($request->hasFile('foto_peserta')) {
-            $fotoPath = $request->file('foto_peserta')->store('uploads', 'public');
+            $fotoPesertaPath = $request->file('foto_peserta')->store('foto_peserta', 'public');
+            $validated['foto_peserta'] = $fotoPesertaPath;
         }
-
-        if ($request->hasFile('foto_catatan')) {
-            $fotoCatatan = $request->file('foto_catatan')->store('uploads', 'public');
-        }
-
+        
         if ($request->hasFile('foto_ktp')) {
-            $fotoKtp = $request->file('foto_ktp')->store('uploads', 'public');
+            $fotoKtpPath = $request->file('foto_ktp')->store('foto_ktp', 'public');
+            $validated['foto_ktp'] = $fotoKtpPath;
         }
-
-        // Create record in WisataDomestik
-        WisataDomestik::create([
-            'nama_peserta' => $request->nama_peserta,
-            'nik' => $request->nik,
-            'tempat_lahir' => $request->tempat_lahir,
-            'tanggal_lahir' => $request->tanggal_lahir,
-            'jenis_kelamin' => $request->jenis_kelamin,
-            'foto_peserta' => $fotoPath,
-            // 'jenis_hubungan' => $request->jenis_hubungan,
-
-            'jenis_perjalanan' => $request->jenis_perjalanan,
-            'biaya' => $request->biaya,
-            'hotel' => $request->hotel,
-            'date_of_issued_perjalanan' => $request->date_of_issued_perjalanan,
-            'date_of_expiry_perjalanan' => $request->date_of_expiry_perjalanan,
-            'transportasi' => $request->transportasi,
-            'kode_khusus_perjalanan' => $request->kode_khusus_perjalanan,
-
-            'catatan' => $request->catatan,
-            'foto_catatan' => $fotoCatatan,
-
-            'username' => $request->username,
-            'password' => bcrypt($request->password), // amankan password
-            'no_telepon' => $request->no_telepon,
-            'email' => $request->email,
-            'foto_ktp' => $fotoKtp,
-
-        ]);
-
-        // Create or update record in admin_login table
-        AdminLogin::updateOrCreate(
-            ['username' => $request->username],
-            [
-                'password' => bcrypt($request->password),
-                'role' => 'user'
-            ]
-        );
-
-        return redirect()->back()->with('success', 'Data berhasil disimpan.');
+        
+        if ($request->hasFile('foto_catatan')) {
+            $fotoCatatanPath = $request->file('foto_catatan')->store('foto_catatan', 'public');
+            $validated['foto_catatan'] = $fotoCatatanPath;
+        }
+        
+        // Hash the password
+        $validated['password'] = Hash::make($request->password);
+        
+        // Create the record
+        $wisataDomestik = WisataDomestik::create($validated);
+        
+        return redirect()->route('wisata-domestik.index')
+            ->with('success', 'Data wisata domestik berhasil ditambahkan.');
     }
 
     public function edit($id)

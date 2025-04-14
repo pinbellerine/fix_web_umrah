@@ -7,6 +7,11 @@
     @props(['type', 'page', 'haji'])
 
     <div class="w-dvh mx-2 my-8 px-6 py-10 bg-white text-white rounded-2xl">
+        @if(session('success'))
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                <p>{{ session('success') }}</p>
+            </div>
+        @endif
 
         <div class="flex items-center mb-4 justify-between">
             <!-- Header Dashboard -->
@@ -129,7 +134,7 @@
                                         </a>
 
                                         <!-- Tombol Hapus -->
-                                        <button data-open-del type="button" class="text-red-500 hover:text-red-600">
+                                        <button data-open-del data-id="{{ $jamaahhaji->id }}" type="button" class="text-red-500 hover:text-red-600">
                                             <i class="fa-solid fa-trash-can text-lg"></i>
                                         </button>
 
@@ -158,12 +163,40 @@
                             <button data-close-del class="px-6 py-2 bg-gray-300 text-black rounded-lg">
                                 Batal
                             </button>
-                            <button data-close-del class="px-4 py-2 bg-red-500 text-white rounded-lg">
-                                Hapus
-                            </button>
+                            <form id="deleteForm" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-lg">
+                                    Hapus
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
+
+                <script>
+                    // JavaScript to handle the delete modal
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const openButtons = document.querySelectorAll('[data-open-del]');
+                        const closeButtons = document.querySelectorAll('[data-close-del]');
+                        const modal = document.getElementById('delmodal');
+                        const deleteForm = document.getElementById('deleteForm');
+
+                        openButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                const id = this.getAttribute('data-id');
+                                deleteForm.action = `/datajh/${id}`;
+                                modal.classList.remove('hidden');
+                            });
+                        });
+
+                        closeButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                modal.classList.add('hidden');
+                            });
+                        });
+                    });
+                </script>
 
             </div>
         </div>

@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WisataLuarNegeriController;
@@ -30,40 +33,87 @@ Route::get('/portofolio', function () {
     return view('porto');
 });
 
-// Authentication routes
-Route::get('/login', function () {
-    // Redirect already logged in users
-    if (Auth::check()) {
-        return Auth::user()->role === 'admin' 
-            ? redirect('/dashboard') 
-            : redirect('/viewuserprofil');
-    }
-    return view('login');
-})->name('login');
+// Debug route (temporary)
+Route::get('/auth-debug', [AuthController::class, 'debug']);
 
+// Debug routes for admin access issues
+Route::get('/auth-debug', [AuthController::class, 'debug']);
+Route::get('/admin-check', function() {
+    $isAdmin = Auth::check() && (Auth::user()->role === 'admin' || Session::get('user_role') === 'admin');
+    return response()->json([
+        'is_authenticated' => Auth::check(),
+        'is_admin' => $isAdmin,
+        'auth_user' => Auth::check() ? [
+            'id' => Auth::id(),
+            'username' => Auth::user()->username,
+            'role' => Auth::user()->role,
+        ] : null,
+        'session' => [
+            'user_id' => Session::get('user_id'),
+            'user_role' => Session::get('user_role'),
+            'username' => Session::get('username'),
+        ]
+    ]);
+});
+
+// Try a simpler admin route for testing
+Route::get('/admin-dashboard', function() {
+    // Simple check directly in route
+    if (Auth::check() && (Auth::user()->role === 'admin' || Session::get('user_role') === 'admin')) {
+        return view('dashboard', ['dataTransaksi' => \App\Models\Transaksi::all()]);
+    }
+    return redirect('/login')->with('error', 'Admin access required');
+})->middleware('auth');
+
+// Authentication Routes
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/forgotpassword', function () {
-    return view('loginforgot');
-});
+Route::get('/logout', [AuthController::class, 'logout']);
+
+// Profile route - accessible to all authenticated users
+Route::get('/viewuserprofil', [ProfileController::class, 'show'])->name('viewuserprofil');
+
+// This route decides where to redirect based on user role
+Route::get('/profile', function() {
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        return redirect('/dashboard');
+    }
+    return redirect()->route('viewuserprofil');
+})->name('profile');
 
 // User profile routes - accessible by any authenticated user
 Route::middleware(['auth'])->group(function () {
-    // This route redirects users based on their role
-    Route::get('/profile', function() {
-        return Auth::user()->role === 'admin' 
-            ? redirect('/dashboard') 
-            : redirect('/viewuserprofil');
-    });
-    
-    // All users can access these routes
-    Route::get('/viewuserprofil', function () {
-        return view('datauserview');
-    });
-    
     Route::get('/viewusertrip', function () {
         return view('datausertrip');
     });
+
+    // View trip details route
+    Route::get('/viewusertrip/{journey_id?}/{journey_type?}', function($journeyId = null, $journeyType = null) {
+        if (empty($journeyId) || empty($journeyType)) {
+            return view('datausertrip');
+        }
+        
+        // Get journey data based on ID and type
+        $journey = null;
+        
+        switch ($journeyType) {
+            case 'haji':
+                $journey = \App\Models\JamaahHaji::find($journeyId);
+                break;
+            case 'umrah':
+                $journey = \App\Models\JamaahUmrah::find($journeyId);
+                break;
+            case 'wisata_domestik':
+                $journey = \App\Models\WisataDomestik::find($journeyId);
+                break;
+            case 'wisata_luar_negeri':
+                $journey = \App\Models\WisataLuarNegeri::find($journeyId);
+                break;
+        }
+        
+        return view('datausertrip', compact('journey', 'journeyType'));
+    })->name('viewusertrip');
     
     Route::get('/viewusertransaction', function () {
         return view('datausertrcs');
@@ -71,6 +121,13 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/viewadminprofil', function () {
         return view('dataadminview');
+    });
+
+    Route::get('/admin-check', function () {
+        if (Auth::check() && (Auth::user()->role === 'admin' || Session::get('user_role') === 'admin')) {
+            return redirect('/dashboard');
+        }
+        return redirect('/viewuserprofil')->with('error', 'Anda tidak memiliki akses admin.');
     });
 });
 
@@ -86,22 +143,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard/datawl', function () {
         $dataWLN = WisataLuarNegeri::all();
         return view('datawl', compact('dataWLN'));
-    });
+    })->name('dashboard.datawl');
 
     Route::get('/dashboard/datawd', function () {
         $dataWD = WisataDomestik::all();
         return view('datawd', compact('dataWD'));
-    });
+    })->name('dashboard.datawd');
 
     Route::get('/dashboard/dataju', function () {
         $umrah = JamaahUmrah::all();
         return view('dataju', compact('umrah'));
-    });
+    })->name('dashboard.dataju');
 
     Route::get('/dashboard/datajh', function () {
         $haji = JamaahHaji::all();
         return view('datajh', compact('haji'));
-    });
+    })->name('dashboard.datajh');
 
     // Archive view
     Route::get('/viewdataarsip', function () {
@@ -266,14 +323,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('viewdataju/{id}', [JamaahUmrahController::class, 'show'])->name('dataumrah.view');
     Route::get('/dataju/{id}/edit', [JamaahUmrahController::class, 'edit'])->name('jamaahumrah.edit');
     Route::put('/ubahdataju/update/{id}', [JamaahUmrahController::class, 'update'])->name('jamaahumrah.update');
+    Route::delete('/dataju/{id}', [JamaahUmrahController::class, 'destroy'])->name('jamaahumrah.destroy');
 
     // Controller routes - JamaahHaji
     Route::post('/jamaah-haji/store', [JamaahHajiController::class, 'store'])->name('haji.store');
     Route::get('/jamaahhaji', [JamaahHajiController::class, 'index'])->name('haji.index');
     Route::get('/jamaah-haji/create', [JamaahHajiController::class, 'create'])->name('jamaah_haji.create');
-    Route::get('/viewdataju/{id}', [JamaahHajiController::class, 'show'])->name('datahaji.view');
+    Route::get('/viewdatajh/{id}', [JamaahHajiController::class, 'show'])->name('datahaji.view');
     Route::get('/datajh/{id}/edit', [JamaahHajiController::class, 'edit'])->name('jamaahhaji.edit');
     Route::put('/ubahdatajh/update/{id}', [JamaahHajiController::class, 'update'])->name('jamaahhaji.update');
+    Route::delete('/datajh/{id}', [JamaahHajiController::class, 'destroy'])->name('jamaahhaji.destroy');
 
     // Controller routes - Transaksi
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');

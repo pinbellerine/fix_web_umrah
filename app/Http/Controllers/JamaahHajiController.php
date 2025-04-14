@@ -234,4 +234,22 @@ class JamaahHajiController extends Controller
         return redirect()->back()->with('success', 'Data berhasil diperbarui.');
     }
 
+    public function destroy($id)
+    {
+        $jamaah = JamaahHaji::findOrFail($id);
+        $username = $jamaah->username;
+        
+        // Delete admin login if exists
+        if ($username) {
+            $adminLogin = AdminLogin::where('username', $username)->first();
+            if ($adminLogin && $adminLogin->role === 'user') {
+                $adminLogin->delete();
+            }
+        }
+        
+        // Delete the jamaah record
+        $jamaah->delete();
+        
+        return redirect()->route('dashboard.datajh')->with('success', 'Data jamaah haji berhasil dihapus.');
+    }
 }

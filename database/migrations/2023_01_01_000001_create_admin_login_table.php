@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->enum('role', ['admin', 'user'])->default('user');
+            $table->enum('user_type', ['admin', 'haji', 'umrah', 'wisata_domestik', 'wisata_luar_negeri'])->default('admin');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->timestamps();
         });
     }

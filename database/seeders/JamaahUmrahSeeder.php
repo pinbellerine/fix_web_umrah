@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\JamaahUmrah;
+use App\Models\AdminLogin;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
@@ -19,8 +20,11 @@ class JamaahUmrahSeeder extends Seeder
         for ($i = 0; $i < 5; $i++) {
             $gender = $faker->randomElement(['L', 'P']);
             $firstName = $gender === 'L' ? $faker->firstNameMale() : $faker->firstNameFemale();
+            $username = $faker->userName();
+            $password = Hash::make('password');
             
-            JamaahUmrah::create([
+            // Create jamaah umrah record
+            $jamaahUmrah = JamaahUmrah::create([
                 'nama_peserta' => $firstName . ' ' . $faker->lastName(),
                 'nik' => $faker->numerify('################'),
                 'tempat_lahir' => $faker->city(),
@@ -34,7 +38,7 @@ class JamaahUmrahSeeder extends Seeder
                 'jenis_hubungan' => $faker->randomElement(['Keluarga', 'Suami-istri']),
                 'foto_ktp' => 'ktp_default.jpg',
                 'jenis_perjalanan' => 'Umrah Reguler',
-                'date_of_issued_perjalanan' => $faker->date('Y-m-d', '-1 months'),
+                'date_of_issued_perjalanan' => $faker->date('Y-m-d', '+1 months'),
                 'biaya' => $faker->numberBetween(2500, 4000) * 10000,
                 'date_of_expiry_perjalanan' => $faker->date('Y-m-d', '+6 months'),
                 'hotel' => 'Hotel ' . $faker->company(),
@@ -42,11 +46,24 @@ class JamaahUmrahSeeder extends Seeder
                 'kode_khusus_perjalanan' => $faker->bothify('UM-####??'),
                 'catatan' => $faker->paragraph(),
                 'foto_catatan' => 'catatan_default.jpg',
-                'username' => $faker->userName(),
+                'username' => $username,
                 'email' => $faker->unique()->safeEmail(),
-                'password' => Hash::make('password'),
+                'password' => $password,
                 'no_telepon' => $faker->numerify('08##########'),
             ]);
+
+            // Create admin login record for this jamaah
+            $adminLogin = AdminLogin::create([
+                'username' => $username,
+                'password' => $password,
+                'role' => 'user',
+                'user_type' => 'umrah',
+                'user_id' => $jamaahUmrah->id
+            ]);
+
+            // Update jamaah record with admin_login_id
+            $jamaahUmrah->admin_login_id = $adminLogin->id;
+            $jamaahUmrah->save();
         }
     }
 }

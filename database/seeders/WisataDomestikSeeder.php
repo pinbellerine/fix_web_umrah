@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\WisataDomestik;
+use App\Models\AdminLogin;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Faker\Factory as Faker;
@@ -21,8 +22,11 @@ class WisataDomestikSeeder extends Seeder
             $gender = $faker->randomElement(['L', 'P']);
             $firstName = $gender === 'L' ? $faker->firstNameMale() : $faker->firstNameFemale();
             $dest = $faker->randomElement($destinasi);
+            $username = $faker->userName();
+            $password = Hash::make('password');
             
-            WisataDomestik::create([
+            // Create wisata domestik record
+            $wisataDomestik = WisataDomestik::create([
                 'nama_peserta' => $firstName . ' ' . $faker->lastName(),
                 'nik' => $faker->numerify('################'),
                 'tempat_lahir' => $faker->city(),
@@ -40,11 +44,24 @@ class WisataDomestikSeeder extends Seeder
                 'kode_khusus_perjalanan' => $faker->bothify('DOM-####??'),
                 'catatan' => $faker->paragraph(),
                 'foto_catatan' => 'catatan_default.jpg',
-                'username' => $faker->userName(),
-                'password' => Hash::make('password'),
+                'username' => $username,
+                'password' => $password,
                 'no_telepon' => $faker->numerify('08##########'),
                 'email' => $faker->unique()->safeEmail(),
             ]);
+
+            // Create admin login record for this traveler
+            $adminLogin = AdminLogin::create([
+                'username' => $username,
+                'password' => $password,
+                'role' => 'user',
+                'user_type' => 'wisata_domestik',
+                'user_id' => $wisataDomestik->id
+            ]);
+
+            // Update wisata domestik record with admin_login_id
+            $wisataDomestik->admin_login_id = $adminLogin->id;
+            $wisataDomestik->save();
         }
     }
 }
