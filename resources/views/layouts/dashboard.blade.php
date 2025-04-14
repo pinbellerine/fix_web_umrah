@@ -17,7 +17,7 @@
     
     <section class="container mx-auto px-4">
 
-    <x-navbarwlcm>  </x-navbarwlcm>
+    <x-navbar-wlcm>  </x-navbar-wlcm>
 
 
     @php
