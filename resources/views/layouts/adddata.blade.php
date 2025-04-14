@@ -20,7 +20,7 @@
 
 <section class="container mx-auto px-4">
 
-    <x-navbarwlcm> </x-navbarwlcm>
+    <x-navbar-wlcm> </x-navbar-wlcm>
 
     <a href="{{ url()->previous() ?? route('') }}" class="absolute top-20 left-8 text-lg flex items-center gap-2 text-black px-4 py-2 rounded-lg">
         <i class="fa-solid fa-angle-left"></i>
