@@ -7,13 +7,31 @@ use App\Models\WisataLuarNegeri;
 use App\Models\AdminLogin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class WisataLuarNegeriController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $wisataluarnegeri = WisataLuarNegeri::all();
-        return view('wisata-luar-negeri.index', compact('wisataluarnegeri'));
+        $query = WisataLuarNegeri::query();
+        
+        // Search functionality
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('nama_peserta', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('nik', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('no_telepon', 'like', '%' . $searchTerm . '%');
+            });
+        }
+        
+        // Sort by latest first
+        $query->orderBy('created_at', 'desc');
+        
+        $dataWLN = $query->get();
+        
+        return view('datawl', ['dataWLN' => $dataWLN]);
     }
 
     public function create()
@@ -235,5 +253,43 @@ class WisataLuarNegeriController extends Controller
         }
 
         return redirect()->back()->with('success', 'Data berhasil diperbarui.');
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $wisata = WisataLuarNegeri::findOrFail($id);
+            
+            // Get username for later deleting from admin_login table
+            $username = $wisata->username;
+            
+            // Delete associated files from storage
+            if ($wisata->foto_peserta) {
+                Storage::disk('public')->delete($wisata->foto_peserta);
+            }
+            if ($wisata->foto_ktp) {
+                Storage::disk('public')->delete($wisata->foto_ktp);
+            }
+            if ($wisata->foto_catatan) {
+                Storage::disk('public')->delete($wisata->foto_catatan);
+            }
+            
+            // Delete the record
+            $wisata->delete();
+            
+            // Delete from admin_login if this was the only record with this username
+            // Check across both wisata tables
+            $otherRecordsWithSameUsername = WisataLuarNegeri::where('username', $username)->exists() || 
+                                          \App\Models\WisataDomestik::where('username', $username)->exists();
+            
+            if (!$otherRecordsWithSameUsername) {
+                AdminLogin::where('username', $username)->delete();
+            }
+            
+            return response()->json(['success' => 'Data berhasil dihapus']);
+        } catch (\Exception $e) {
+            Log::error('Error deleting Wisata Luar Negeri: ' . $e->getMessage());
+            return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
     }
 }

@@ -29,8 +29,10 @@
                             class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
 
                         <!-- Input -->
-                        <input type="text" placeholder="Cari"
-                            class="pl-12 pr-4 py-4 w-full h-[43px] border text-black rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <form id="searchForm" method="GET" action="{{ route('datawd') }}">
+                            <input type="text" name="search" placeholder="Cari" value="{{ request('search') }}"
+                                class="pl-12 pr-4 py-4 w-full h-[43px] border text-black rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </form>
                     </div>
 
                 </div>
@@ -129,7 +131,7 @@
                                         </a>
 
                                         <!-- Tombol Hapus -->
-                                        <button data-open-del type="button" class="text-red-500 hover:text-red-600">
+                                        <button data-open-del data-id="{{ $wisatadomestik->id }}" type="button" class="text-red-500 hover:text-red-600">
                                             <i class="fa-solid fa-trash-can text-lg"></i>
                                         </button>
 
@@ -158,7 +160,7 @@
                             <button data-close-del class="px-6 py-2 bg-gray-300 text-black rounded-lg">
                                 Batal
                             </button>
-                            <button data-close-del class="px-4 py-2 bg-red-500 text-white rounded-lg">
+                            <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg">
                                 Hapus
                             </button>
                         </div>
@@ -167,4 +169,70 @@
 
             </div>
         </div>
-    @endsection
+    </div>
+
+    <script>
+        // Handle search form submission
+        document.querySelector('input[name="search"]').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchForm').submit();
+            }
+        });
+
+        // Delete functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('delmodal');
+            const openDeleteBtns = document.querySelectorAll('[data-open-del]');
+            const closeDeleteBtns = document.querySelectorAll('[data-close-del]');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+            let currentItemId = null;
+            
+            // Open delete modal
+            openDeleteBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentItemId = this.getAttribute('data-id');
+                    deleteModal.classList.remove('hidden');
+                });
+            });
+            
+            // Close delete modal
+            closeDeleteBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteModal.classList.add('hidden');
+                    currentItemId = null;
+                });
+            });
+            
+            // Handle delete confirmation
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', function() {
+                    if (!currentItemId) return;
+                    
+                    fetch(`/wisatadomestik/${currentItemId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Close modal
+                            deleteModal.classList.add('hidden');
+                            
+                            // Refresh the page
+                            location.reload();
+                        } else {
+                            alert('Gagal menghapus data: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Terjadi kesalahan saat menghapus data');
+                    });
+                });
+            }
+        });
+    </script>
+@endsection

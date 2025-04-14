@@ -12,3 +12,4 @@ import "./suratmodal.js";
 import "./forgotpswrd.js";
 import "./forgototp.js";
 import './note';
+import './dashboard-charts.js';

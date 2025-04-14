@@ -307,6 +307,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/viewdatawl/{id}', [WisataLuarNegeriController::class, 'show'])->name('datawl.view');
     Route::get('/datawl/{id}/edit', [WisataLuarNegeriController::class, 'edit'])->name('wisataluarnegeri.edit');
     Route::put('/ubahdatawl/update/{id}', [WisataLuarNegeriController::class, 'update'])->name('wisataluarnegeri.update');
+    Route::delete('/wisataluarnegeri/{id}', [WisataLuarNegeriController::class, 'destroy'])->name('wisataluarnegeri.destroy');
 
     // Controller routes - WisataDomestik
     Route::post('/wisata-domestik/store', [WisataDomestikController::class, 'store'])->name('wisata-domestik.store');
@@ -315,6 +316,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/viewdatawd/{id}', [WisataDomestikController::class, 'show'])->name('datawd.view');
     Route::get('/datawd/{id}/edit', [WisataDomestikController::class, 'edit'])->name('wisatadomestik.edit');
     Route::put('/ubahdatawd/update/{id}', [WisataDomestikController::class, 'update'])->name('wisatadomestik.update');
+    Route::delete('/wisatadomestik/{id}', [WisataDomestikController::class, 'destroy'])->name('wisatadomestik.destroy');
 
     // Controller routes - JamaahUmrah
     Route::post('/jamaah-umrah/store', [JamaahUmrahController::class, 'store'])->name('umrah.store');
@@ -338,5 +340,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     Route::get('/transaksi/create', [TransaksiController::class, 'create'])->name('transaksi.create');
     Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi.store');
+});
+
+// Dashboard routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+});
+
+// API routes for charts
+Route::prefix('api')->group(function () {
+    Route::get('/chart/{type}', [App\Http\Controllers\ChartController::class, 'getData']);
 });
 
