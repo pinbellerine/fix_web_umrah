@@ -15,8 +15,8 @@ use App\Http\Controllers\JamaahHajiController;
 use App\Models\Transaksi;
 use App\Models\WisataLuarNegeri;
 use App\Models\WisataDomestik;
-use App\Models\jamaahumrah;
-use App\Models\jamaahhaji;
+use App\Models\JamaahUmrah;  
+use App\Models\JamaahHaji;   
 
 use App\Http\Controllers\TransaksiController;
 

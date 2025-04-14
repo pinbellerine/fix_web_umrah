@@ -29,7 +29,7 @@
                             class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
 
                         <!-- Input -->
-                        <form id="searchForm" method="GET" action="{{ route('datawd') }}">
+                        <form id="searchForm" method="GET" action="{{ route('dashboard.datawd') }}">
                             <input type="text" name="search" placeholder="Cari" value="{{ request('search') }}"
                                 class="pl-12 pr-4 py-4 w-full h-[43px] border text-black rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </form>
