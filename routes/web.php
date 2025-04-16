@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WisataLuarNegeriController;
@@ -15,8 +16,8 @@ use App\Http\Controllers\JamaahHajiController;
 use App\Models\Transaksi;
 use App\Models\WisataLuarNegeri;
 use App\Models\WisataDomestik;
-use App\Models\JamaahUmrah;  
-use App\Models\JamaahHaji;   
+use App\Models\JamaahUmrah;
+use App\Models\JamaahHaji;
 
 use App\Http\Controllers\TransaksiController;
 
@@ -93,10 +94,10 @@ Route::middleware(['auth'])->group(function () {
         if (empty($journeyId) || empty($journeyType)) {
             return view('datausertrip');
         }
-        
+
         // Get journey data based on ID and type
         $journey = null;
-        
+
         switch ($journeyType) {
             case 'haji':
                 $journey = \App\Models\JamaahHaji::find($journeyId);
@@ -111,14 +112,14 @@ Route::middleware(['auth'])->group(function () {
                 $journey = \App\Models\WisataLuarNegeri::find($journeyId);
                 break;
         }
-        
+
         return view('datausertrip', compact('journey', 'journeyType'));
     })->name('viewusertrip');
-    
+
     Route::get('/viewusertransaction', function () {
         return view('datausertrcs');
     });
-    
+
     Route::get('/viewadminprofil', function () {
         return view('dataadminview');
     });
@@ -232,8 +233,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
 
     Route::get('/transaction/datawl', function () {
-        return view('trcswl');
+        $dataTransaksi = Transaksi::all();
+        return view('trcswl', compact('dataTransaksi'));
     });
+
 
     Route::get('/transaction/datawd', function () {
         return view('trcswd');
@@ -280,7 +283,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     });
 
     Route::get('/tambahdatatransaksi', function () {
-        return view('trcsadd');
+        $luar = DB::table('wisata_luar_negeri')->select('nama_peserta');
+        $domestik = DB::table('wisata_domestik')->select('nama_peserta');
+        $umrah = DB::table('jamaah_umrah')->select('nama_peserta');
+        $haji = DB::table('jamaah_haji')->select('nama_peserta');
+
+        $namaPeserta = $luar->union($domestik)->union($umrah)->union($haji)->pluck('nama_peserta');
+
+        return view('trcsadd', compact('namaPeserta'));
     });
 
     // Edit data routes
@@ -340,6 +350,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     Route::get('/transaksi/create', [TransaksiController::class, 'create'])->name('transaksi.create');
     Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi.store');
+    Route::get('/get-peserta-data', [TransaksiController::class, 'getPesertaData'])->name('get.peserta.data');
 });
 
 // Dashboard routes

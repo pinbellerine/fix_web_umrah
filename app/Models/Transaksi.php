@@ -19,5 +19,7 @@ class Transaksi extends Model
         'setoran_tagihan',
         'kategori',
         'keterangan',
+        'jenis_perjalanan',
+        'kode_khusus_perjalanan',
     ];
 }

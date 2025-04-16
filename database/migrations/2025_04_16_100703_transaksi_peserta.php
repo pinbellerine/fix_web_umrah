@@ -18,7 +18,9 @@ return new class extends Migration
             $table->decimal('total_tagihan', 15, 2);
             $table->date('tanggal_pembayaran');
             $table->decimal('setoran_tagihan', 15, 2);
-            $table->string('kategori');
+            $table->string('kode_khusus_perjalanan')->nullable();
+            $table->string('jenis_perjalanan')->nullable();
+            $table->enum('kategori', ['DP', 'Pelunasan']);
             $table->enum('keterangan', ['Lunas', 'Belum Lunas']);
             $table->timestamps();
         });

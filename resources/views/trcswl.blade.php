@@ -86,46 +86,42 @@
                     </thead>
 
                     <tbody>
-                        <tr data-open-part class="bg-white hover:bg-gray-50 text-black text-center">
+                        @foreach ($dataTransaksi as $item)
+                        <tr class="bg-white hover:bg-gray-50 text-black text-center">
                             <td class="px-6 py-4">
-                                <img src="{{ asset('/images/foto.jpeg') }}" alt="Foto" class="w-10 h-10 rounded-full">
+                                <img src="{{ asset('storage/' . $item->foto_peserta) }}" alt="Foto" class="w-10 h-10 rounded-full">
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4">
                                 <div class="flex justify-center items-center">
-                                    Sukardi Santari
+                                    {{ $item->nama_peserta }}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="flex justify-center items-center text-green-500">
-                                    Rp7.000.000
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4 text-green-500">
                                 <div class="flex justify-center items-center">
-                                    30-06-2024
+                                    Rp {{$item->setoran_tagihan}}
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-center">
+                            <td class="px-6 py-4">
+                                <div class="flex justify-center items-center">
+                                    {{$item->tanggal_pembayaran}}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
                                 <div class="flex justify-center items-center gap-4">
-
-                                    <!-- Tombol Lihat -->
+                                    <!-- Tombol Aksi -->
                                     <a href="/viewtransactionwl" class="text-blue-400 hover:text-blue-500">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
-
-                                    <!-- Tombol Edit -->
                                     <a href="/changetransactionwl" class="text-yellow-500 hover:text-yellow-600">
                                         <i class="fa-solid fa-pen-to-square text-lg"></i>
                                     </a>
-
-                                    <!-- Tombol Hapus -->
                                     <button data-open-del type="button" class="text-red-500 hover:text-red-600">
                                         <i class="fa-solid fa-trash-can text-lg"></i>
                                     </button>
-
                                 </div>
                             </td>
                         </tr>
+                    @endforeach
                     </tbody>
                 </table>
 

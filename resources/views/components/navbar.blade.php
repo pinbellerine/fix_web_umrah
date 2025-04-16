@@ -13,7 +13,7 @@
         <!-- Menu Navbar di Tengah -->
         <div class="flex space-x-6">
             <x-navbar-link href="/dashboard" :active="request()->is('dashboard*')">Dashboard</x-nav-link>
-            <x-navbar-link href="/transaction" :active="request()->is('transaction*')">Transaksi</x-nav-link>
+            <x-navbar-link href="/transaction/datawl" :active="request()->is('transaction*')">Transaksi</x-nav-link>
         </div>
 
         <!-- Tombol di Kanan -->

@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaksi;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+
+use App\Models\WisataLuarNegeri;
+use App\Models\WisataDomestik;
+use App\Models\JamaahUmrah;
+use App\Models\JamaahHaji;
 
 class TransaksiController extends Controller
 {
@@ -15,10 +21,36 @@ class TransaksiController extends Controller
         return view('transaksi.index', compact('transaksi'));
     }
 
-    // Menampilkan form tambah transaksi
-    public function create()
+     // Form tambah transaksi
+     public function create()
+     {
+         $namaPeserta = DB::table('wisata_luar_negeri')->pluck('nama_peserta')
+             ->merge(DB::table('wisata_domestik')->pluck('nama_peserta'))
+             ->merge(DB::table('jamaah_umrah')->pluck('nama_peserta'))
+             ->merge(DB::table('jamaah_haji')->pluck('nama_peserta'));
+
+         return view('trcsadd', compact('namaPeserta'));
+     }
+
+      // AJAX: Ambil data peserta dari 4 tabel
+    public function getPesertaData(Request $request)
     {
-        return view('transaksi.create');
+        $nama = $request->query('nama_peserta');
+
+        $peserta = DB::table('wisata_luar_negeri')->where('nama_peserta', $nama)->first()
+            ?? DB::table('wisata_domestik')->where('nama_peserta', $nama)->first()
+            ?? DB::table('jamaah_umrah')->where('nama_peserta', $nama)->first()
+            ?? DB::table('jamaah_haji')->where('nama_peserta', $nama)->first();
+
+        if ($peserta) {
+            return response()->json([
+                'nik' => $peserta->nik,
+                'jenis_perjalanan' => $peserta->jenis_perjalanan,
+                'kode_khusus_perjalanan' => $peserta->kode_khusus_perjalanan,
+            ]);
+        } else {
+            return response()->json(['message' => 'Peserta tidak ditemukan'], 404);
+        }
     }
 
     // Menyimpan transaksi ke database
@@ -30,8 +62,11 @@ class TransaksiController extends Controller
             'total_tagihan' => 'required|numeric',
             'tanggal_pembayaran' => 'required|date',
             'setoran_tagihan' => 'required|numeric',
-            'kategori' => 'required|string|max:100',
+            'kategori' => 'required|in:DP,Pelunasan',
             'keterangan' => 'required|in:Lunas,Belum Lunas',
+            'kode_khusus_perjalanan' => 'required',
+
+
         ]);
 
         // Upload file gambar
@@ -47,6 +82,7 @@ class TransaksiController extends Controller
             'setoran_tagihan' => $request->setoran_tagihan,
             'kategori' => $request->kategori,
             'keterangan' => $request->keterangan,
+            'kode_khusus_perjalanan'=> $request->kode_khusus_perjalanan,
         ]);
 
         return redirect()->back()->with('success', 'Transaksi berhasil ditambahkan');
